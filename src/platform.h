@@ -53,10 +53,17 @@ clock_t platform_clock(void) {
   return clock();
 }
 
+/*
 fixed_t platform_elapsed(clock_t start, clock_t end) {
   float sec = (float)(end - start) / CLOCKS_PER_SEC;
   return (fixed_t)(sec * (float)FIXED_ONE);
 }
+*/
+
+float platform_elapsed_sec(clock_t start, clock_t end) {
+  return (float)(end - start) / CLOCKS_PER_SEC;
+}
+
 #endif
 
 #endif // PLATFORM_H
