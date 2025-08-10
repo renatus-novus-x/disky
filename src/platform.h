@@ -7,11 +7,18 @@
 typedef uint16_t fixed_t;
 
 #ifdef MSX
-#define CLOCKS_PER_SEC 60
-#define JIFFY          0xfc9e
+
+#define CLOCKS_PER_SEC (60)
+#define JIFFY          (0xfc9e)
+
+void platform_init(){
+  uint8_t* ptr = (uint8_t*)JIFFY;
+  ptr[0] = 0;
+  ptr[1] = 0;
+}
 
 clock_t platform_clock(void) {
-  uint8_t* ptr = (uint8_t*)0xFC9E;
+  uint8_t* ptr = (uint8_t*)JIFFY;
   return (clock_t)(ptr[0] | (ptr[1] << 8));
 }
 
@@ -20,6 +27,27 @@ fixed_t platform_elapsed(clock_t start, clock_t end) {
 }
 #else
 #include <time.h>
+
+#if X68K
+
+#include <x68k/iocs.h>
+
+volatile uint32_t vbl_count = 0;
+
+__attribute__((interrupt_handler))
+static void vbl_handler(void) { vbl_count++; }
+
+void platform_init(){
+  _iocs_vdispst((void*)vbl_handler, 0, 1);
+}
+
+#undef  CLOCKS_PER_SEC
+#define CLOCKS_PER_SEC 60
+
+clock_t clock(void) {
+  return (clock_t)(vbl_count);
+}
+#endif
 
 clock_t platform_clock(void) {
   return clock();
