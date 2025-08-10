@@ -83,6 +83,7 @@ void run_benchmark(const char* label, void (*func)(void), unsigned int size_byte
   printf("%-10s: %u.%02u KB/s (%u.%03u sec)\n", label, rate_int, rate_frac, sec_int, sec_frac);
 #else
   float sec  = platform_elapsed_sec(t1, t2);
+  if (sec < 0.16666f){ sec = 0.16666f; }; // too fast
   float rate = ((float)size_bytes / 1024.0f) / sec;
   printf("%-10s: %.2f KB/s (%.3f sec)\n", label, rate, sec);
 #endif
