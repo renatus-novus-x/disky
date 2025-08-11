@@ -32,25 +32,30 @@ fixed_t platform_elapsed(clock_t start, clock_t end) {
 
 #include <x68k/iocs.h>
 
-volatile uint32_t vbl_count = 0;
-
-__attribute__((interrupt_handler))
-static void vbl_handler(void) { vbl_count++; }
-
 void platform_init(){
-  _iocs_vdispst((void*)vbl_handler, 0, 1);
+//  _iocs_vdispst((void*)vbl_handler, 0, 1);
 }
 
 #undef  CLOCKS_PER_SEC
-#define CLOCKS_PER_SEC 60
+#define CLOCKS_PER_SEC 100
 
-clock_t clock(void) {
-  return (clock_t)(vbl_count);
+static inline uint32_t trap_ontime_cs(void){
+  uint32_t cs;
+  __asm__ volatile(
+    "moveq  #0x7F,%%d0 \n\t"  /* _ONTIME */
+    "trap   #15        \n\t"  /* IOCS    */
+    "move.l %%d0,%0    \n\t"
+    : "=d"(cs)
+    :
+    : "d0","d1","a0","cc","memory"
+  );
+  return cs;
 }
+
 #endif
 
 clock_t platform_clock(void) {
-  return clock();
+  return (clock_t)trap_ontime_cs();
 }
 
 /*
